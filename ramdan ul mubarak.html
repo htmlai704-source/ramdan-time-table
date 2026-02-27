@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramadan 30 Days Timetable</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; font-family: Arial,sans-serif; }
+body {
+    min-height:100vh;
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)), 
+                url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdGU_PlhY1WlSwUMW6PoUp0pEFYwHIV_MroQ&s");
+    background-size: cover;
+    background-position: center;
+    color:white;
+    padding:20px;
+}
+h1 { text-align:center; margin-bottom:20px; color:#ffd369; }
+.days-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+.day-tile {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(6px);
+    border:1px solid rgba(255,255,255,0.2);
+    padding:15px; border-radius:12px;
+    text-align:center; cursor:pointer;
+    transition:0.3s; font-weight:bold;
+}
+.day-tile:hover { background:#ffd369; color:black; transform:scale(1.05); }
+
+.modal {
+    position:fixed; inset:0; background:rgba(0,0,0,0.85);
+    display:none; justify-content:center; align-items:center;
+}
+.modal-content {
+    background: rgba(20,20,20,0.95); padding:25px;
+    border-radius:20px; width:90%; max-width:400px;
+    text-align:center; animation:pop 0.3s ease;
+}
+.modal-content h3 { margin-bottom:15px; color:#ffd369; }
+.modal-content p { margin-bottom:10px; font-size:18px; }
+.close-btn { margin-top:15px; padding:8px 15px; border:none; border-radius:8px; background:#ffd369; cursor:pointer; font-weight:bold; }
+@keyframes pop { from{transform:scale(0.8);opacity:0;} to{transform:scale(1);opacity:1;} }
+@media(max-width:600px){ .days-grid { grid-template-columns:repeat(3,1fr); } }
+</style>
+</head>
+<body>
+
+<h1>🌙 Ramadan 30 Days</h1>
+
+<div class="days-grid" id="daysGrid"></div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h3 id="selectedDayTitle"></h3>
+        <p><strong>Sehri (Fajr):</strong> <span id="sehri"></span></p>
+        <p><strong>Iftar (Maghrib):</strong> <span id="iftar"></span></p>
+        <p><strong>Dua (Arabic):</strong> <span id="duaAr"></span></p>
+        <p><strong>Dua (Hindi/English):</strong> <span id="duaEn"></span></p>
+        <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+
+<script>
+// Hardcoded times from the photo
+const sehriTimes = [
+    "4:23","4:22","4:21","4:20","4:19","4:18","4:17","4:16","4:15","4:14",
+    "4:13","4:12","4:11","4:10","4:09","4:08","4:07","4:06","4:05","4:04",
+    "4:03","4:02","4:01","4:00","3:59","3:58","3:57","3:56","3:55","3:54"
+];
+
+const iftarTimes = [
+    "6:43","6:43","6:44","6:44","6:45","6:45","6:46","6:46","6:47","6:47",
+    "6:48","6:48","6:49","6:49","6:50","6:50","6:51","6:51","6:52","6:52",
+    "6:53","6:53","6:54","6:54","6:55","6:55","6:56","6:56","6:57","6:57"
+];
+
+// Duas in Arabic and Hindi/English
+const duas = [
+    {
+        ar: "اللّهُمَّ إِنِّي لَكَ صُمْتُ وَبِكَ آمَنْتُ وَعَلَى رِزْقِكَ أَفْطَرْتُ",
+        en: "Allahumma inni laka sumtu wa bika aamantu wa ala rizqika aftartu."
+    },
+    {
+        ar: "اللّهُمَّ بَارِكْ لَنَا فِي رَمَضَان وَأَعِنَّا عَلَى صِيَامِهِ وَقِيَامِهِ",
+        en: "Allahumma barik lana fi Ramadan wa a’inna ala siyamihi wa qiyamihi."
+    },
+    {
+        ar: "رَبِّ إِنِّي لِمَا أَنزَلْتَ إِلَيَّ مِنْ خَيْرٍ فَقِير",
+        en: "Rabbi inni lima anzalta ilayya min khairin faqir."
+    },
+    {
+        ar: "اللّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي",
+        en: "Allahumma innaka afuwwun tuhibbul afwa fa'fu anni."
+    },
+    {
+        ar: "اللّهُمَّ أَجِرْنِي مِنَ النَّار",
+        en: "Allahumma ajirni minan naar."
+    },
+    {
+        ar: "يَا الله اغفر لنا في هذا الشهر المبارك",
+        en: "Ya Allah grant us forgiveness in this blessed month."
+    }
+];
+
+// generate 30-day tiles
+const grid = document.getElementById("daysGrid");
+for(let i=1;i<=30;i++){
+    const tile = document.createElement("div");
+    tile.className="day-tile";
+    tile.innerText="Day "+i;
+    tile.onclick=()=>showDetails(i);
+    grid.appendChild(tile);
+}
+
+// show modal
+function showDetails(day){
+    document.getElementById("selectedDayTitle").innerText="Ramadan - Day "+day;
+    document.getElementById("sehri").innerText=sehriTimes[day-1];
+    document.getElementById("iftar").innerText=iftarTimes[day-1];
+
+    const dua = duas[(day-1)%duas.length];
+    document.getElementById("duaAr").innerText = dua.ar;
+    document.getElementById("duaEn").innerText = dua.en;
+
+    document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){ document.getElementById("modal").style.display="none"; }
+
+</script>
+</body>
+</html>
